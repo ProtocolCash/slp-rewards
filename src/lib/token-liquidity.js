@@ -153,35 +153,16 @@ class TokenLiquidity {
             const bchQty = await bch.recievedBch(lastTransaction, BCH_ADDR1)
             wlogger.info(`${bchQty} BCH recieved.`)
 
-            // Exchange BCH for tokens
-            const exchangeObj = {
-              bchIn: Number(bchQty),
-              bchBalance: Number(bchBalance),
-              bchOriginalBalance: BCH_QTY_ORIGINAL,
-              tokenOriginalBalance: TOKENS_QTY_ORIGINAL
-            }
-            const retObj = _this.exchangeBCHForTokens(exchangeObj)
-
-            wlogger.info(
-              `Ready to send ${retObj.tokensOut} tokens in exchange for ${bchQty} BCH`
-            )
-
             // Calculate the new balances
             // newBchBalance = retObj.bch2
             newBchBalance = tlUtil.round8(Number(bchBalance) + exchangeObj.bchIn)
-            newTokenBalance = tlUtil.round8(Number(tokenBalance) - retObj.tokensOut)
+            newTokenBalance = tlUtil.round8(Number(tokenBalance) - bchQty)
             wlogger.debug(`retObj: ${util.inspect(retObj)}`)
             wlogger.info(`New BCH balance: ${newBchBalance}`)
             wlogger.info(`New token balance: ${newTokenBalance}`)
 
-            // Send Tokens
-            // const obj = {
-            //  recvAddr: userAddr,
-            //  tokensToSend: retObj.tokensOut
-            // }
-
-            // await tknLib.sendTokens(obj)
-            const tokenConfig = await slp.createTokenTx(userAddr, retObj.tokensOut)
+            // Send Tokens 1:1 for received BCH
+            const tokenConfig = await slp.createTokenTx(userAddr, bchQty)
             await slp.broadcastTokenTx(tokenConfig)
           }
 
@@ -213,60 +194,6 @@ class TokenLiquidity {
       wlogger.error(`Error in compareLastTransaction: `, err)
       wlogger.error(`obj: ${JSON.stringify(obj, null, 2)}`)
       // throw err
-    }
-  }
-
-  // Calculates the numbers of tokens to send.
-  exchangeBCHForTokens (obj) {
-    try {
-      const { bchIn, bchBalance, bchOriginalBalance, tokenOriginalBalance } = obj
-
-      const bch1 = bchBalance
-      const bch2 = bch1 - bchIn - 0.00000270 // Subtract 270 satoshi tx fee
-
-      const token1 = -1 * tokenOriginalBalance * Math.log(bch1 / bchOriginalBalance)
-      const token2 = -1 * tokenOriginalBalance * Math.log(bch2 / bchOriginalBalance)
-
-      const tokensOut = token2 - token1
-
-      wlogger.debug(`bch1: ${bch1}, bch2: ${bch2}, token1: ${token1}, token2: ${token2}, tokensOut: ${tokensOut}`)
-
-      wlogger.debug(`${tokensOut} tokens sent in exchange for ${bchIn} BCH`)
-
-      const retObj = {
-        tokensOut: Math.abs(tlUtil.round8(tokensOut)),
-        bch2,
-        token2
-      }
-
-      return retObj
-    } catch (err) {
-      wlogger.error(`Error in util.js/exchangeBCHForTokens() `)
-      throw err
-    }
-  }
-
-  // Calculates the amount of BCH to send.
-  exchangeTokensForBCH (obj) {
-    try {
-      wlogger.silly(`Entering exchangeTokensForBCH.`, obj)
-
-      const { tokenIn, tokenBalance, bchOriginalBalance, tokenOriginalBalance } = obj
-
-      const token1 = tokenBalance - tokenOriginalBalance
-      const token2 = token1 + tokenIn
-
-      const bch1 = bchOriginalBalance * Math.pow(Math.E, -1 * token1 / tokenOriginalBalance)
-      const bch2 = bchOriginalBalance * Math.pow(Math.E, -1 * token2 / tokenOriginalBalance)
-
-      const bchOut = bch2 - bch1 - 0.00000270 // Subtract 270 satoshi tx fee
-
-      wlogger.debug(`bch1: ${bch1}, bch2: ${bch2}, token1: ${token1}, token2: ${token2}, bchOut: ${bchOut}`)
-
-      return Math.abs(tlUtil.round8(bchOut))
-    } catch (err) {
-      wlogger.error(`Error in exchangeTokensForBCH().`)
-      throw err
     }
   }
 

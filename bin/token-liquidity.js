@@ -55,28 +55,6 @@ async function startTokenLiquidity () {
   wlogger.info(`SLP token address ${config.SLP_ADDR} has a balance of: ${tokenBalance}`)
   config.tokenBalance = tokenBalance
 
-  // Get the BCH-USD exchange rate.
-  let USDperBCH
-  try {
-    const rawRate = await got(`https://api.coinbase.com/v2/exchange-rates?currency=BCH`)
-    const jsonRate = JSON.parse(rawRate.body)
-    // console.log(`jsonRate: ${JSON.stringify(jsonRate, null, 2)}`);
-    USDperBCH = jsonRate.data.rates.USD
-    wlogger.info(`USD/BCH exchange rate: $${USDperBCH}`)
-
-    config.usdPerBCH = USDperBCH
-  } catch (err) {
-    wlogger.error(`Coinbase exchange rate could not be retrieved!. Assuming hard coded value.`)
-    wlogger.error(err)
-    USDperBCH = 560
-  }
-
-  // Calculate exchange rate spot price.;
-  const marketCap = USDperBCH * bchBalance
-  console.log(`Market cap of BCH controlled by app: $${marketCap}`)
-  const price = marketCap / tokenBalance
-  console.log(`Token spot price: $${price}`)
-
   // Get the last transaction associated with this address.
   let lastTransaction = await txs.getLastConfirmedTransaction(BCH_ADDR1)
 
@@ -92,9 +70,6 @@ async function startTokenLiquidity () {
 
     const retObj = await lib.compareLastTransaction(obj)
     const newTx = retObj.lastTransaction
-
-    // Save the updated price information.
-    await tlUtil.saveState(config)
 
     // Update the last transaction.
     if (newTx) lastTransaction = newTx
