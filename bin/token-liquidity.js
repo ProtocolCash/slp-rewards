@@ -1,5 +1,5 @@
 /*
-  Liquidity app for Wormhole BCH tokens inspired by Bancors whitepaper
+ * BCH/SLP Automatic Token Reward System
 */
 
 'use strict'
