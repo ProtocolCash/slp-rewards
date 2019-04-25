@@ -113,40 +113,6 @@ class TokenLiquidity {
           // User sent tokens.
           if (isTokenTx) {
             wlogger.info(`${isTokenTx} tokens recieved.`)
-
-            // Exchange tokens for BCH
-            const exchangeObj = {
-              tokenIn: isTokenTx,
-              tokenBalance: Number(tokenBalance),
-              bchOriginalBalance: BCH_QTY_ORIGINAL,
-              tokenOriginalBalance: TOKENS_QTY_ORIGINAL
-            }
-
-            const bchOut = _this.exchangeTokensForBCH(exchangeObj)
-            wlogger.info(
-              `Ready to send ${bchOut} BCH in exchange for ${isTokenTx} tokens`
-            )
-
-            // Update the balances
-            newTokenBalance = tlUtil.round8(exchangeObj.tokenBalance + isTokenTx)
-            newBchBalance = tlUtil.round8(bchBalance - bchOut)
-            wlogger.info(`New BCH balance: ${newBchBalance}`)
-            wlogger.info(`New token balance: ${newTokenBalance}`)
-
-            // Send BCH
-            const obj = {
-              recvAddr: userAddr,
-              satoshisToSend: Math.floor(bchOut * 100000000)
-            }
-            wlogger.debug(`obj.satoshisToSend: ${obj.satoshisToSend}`)
-
-            const hex = await bch.createBchTx(obj)
-            await bch.broadcastBchTx(hex)
-
-            // Send the tokens to the apps token address on the 245 derivation path.
-            const tokenConfig = await slp.createTokenTx(config.SLP_ADDR, isTokenTx)
-            await slp.broadcastTokenTx(tokenConfig)
-
           // User sent BCH
           } else {
             // Get the BCH send amount.
