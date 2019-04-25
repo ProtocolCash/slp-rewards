@@ -46,47 +46,6 @@ describe('#token-liquidity', () => {
 
     sandbox.restore()
   })
-
-  describe('#exchangeTokensForBCH', () => {
-    it('should calculate values in the spreadsheet', () => {
-      const exchangeObj = {
-        tokenIn: 500,
-        tokenBalance: 8500,
-        bchOriginalBalance: 25,
-        tokenOriginalBalance: 5000
-      }
-
-      const result = lib.exchangeTokensForBCH(exchangeObj)
-      // console.log(`result: ${result}`)
-
-      assert.isNumber(result)
-      assert.equal(result, 1.1814112, `Should match spreadsheet`)
-    })
-  })
-
-  describe('exchangeBCHForTokens', () => {
-    it('should calculate values in the spreadsheet', () => {
-      const exchangeObj = {
-        bchIn: 1.181410849,
-        bchBalance: 12.41463259,
-        bchOriginalBalance: 25,
-        tokenOriginalBalance: 5000
-      }
-
-      const result = lib.exchangeBCHForTokens(exchangeObj)
-      // console.log(`result: ${util.inspect(result)}`)
-
-      assert.hasAllKeys(result, ['tokensOut', 'bch2', 'token2'])
-      assert.equal(
-        Math.floor(result.tokensOut),
-        500,
-        `Should match spreadsheet`
-      )
-      assert.isNumber(result.bch2)
-      assert.isNumber(result.token2)
-    })
-  })
-
   // Only run these tests for a unit test.
   if (process.env.TEST_ENV === 'unit') {
     describe('compareLastTransaction', () => {
